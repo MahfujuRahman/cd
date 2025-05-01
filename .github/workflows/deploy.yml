@@ -1,0 +1,31 @@
+name: 🚀 Deploy Laravel via Appleboy SSH
+
+on:
+  push:
+    branches:
+      - main  # or your deployment branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v3
+
+    - name: 🚀 Deploy to VPS via SSH
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 22
+        script: |
+          cd ${{ secrets.PROJECT_PATH }}
+          git clone git@github.com:MahfujuRahman/cd.git .
+          git pull origin main
+          # composer install --no-interaction --prefer-dist --optimize-autoloader
+          # php artisan migrate --force
+          # php artisan config:cache
+          # php artisan route:cache
+          # php artisan view:cache
