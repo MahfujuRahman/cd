@@ -1,41 +1,80 @@
-First Login to Aapanel
+# 🚀 GitHub to VPS Deployment Guide using Aapanel + GitHub Actions
 
-create a project repository
+---
 
-one time setup - if git not installed then 
-run git install
+## ✅ Step 1: First Login to Aapanel
+Log in to your Aapanel to manage your web server environment.
 
-and 
-Step 1: On your VPS, generate a new SSH key (if not already created)
+---
 
+## 📂 Step 2: Create a Project Repository
+- Create a private or public repository on GitHub for your project (e.g., `cd`).
+- Make sure you have added your project files and pushed them to the `main` branch.
+
+---
+
+## 🧰 Step 3: One-Time Setup (If Git Is Not Installed on VPS)
+
+Run the following command on your VPS:
+
+```bash
+apt install git -y
+```
+
+---
+
+## 🔑 Step 4: Generate SSH Key on VPS
+
+```bash
 ssh-keygen -t rsa -b 4096 -C "your_email@example.com" -f ~/.ssh/ajmain
+```
 
-Step 2: Copy the public key
-cat ~/.ssh/ajmain.pub
-and copy
+Press Enter when prompted to confirm the path. You’ll get two files:
+- Private key: `~/.ssh/ajmain`
+- Public key: `~/.ssh/ajmain.pub`
 
-cat ~/.ssh/ajmain.pub >> ~/.ssh/authorized_keys
+---
 
-Go to: GitHub → Settings → SSH and GPG keys
+## 📋 Step 5: Copy & Register the SSH Public Key
 
-Click New SSH key
+1. Display the public key:
+    ```bash
+    cat ~/.ssh/ajmain.pub
+    ```
+2. Append it to authorized keys:
+    ```bash
+    cat ~/.ssh/ajmain.pub >> ~/.ssh/authorized_keys
+    ```
+3. Go to **GitHub → Settings → SSH and GPG keys**
+4. Click **"New SSH Key"**
+5. **Title:** `VPS`
+6. **Paste** the copied key
+7. **Save**
 
-Title: VPS
+8. Test the connection:
+    ```bash
+    ssh -T git@github.com
+    ```
 
-Paste the key you copied
+---
 
-Save
+## 🌐 Step 6: Clone Repository to Aapanel Project Directory
 
-ssh -T git@github.com
-
-
+```bash
 cd /www/wwwroot/test.mirpurianscafe.com
 git clone git@github.com:MahfujuRahman/cd.git .
+```
 
+---
 
-after that inyour project make .github/workflows/deploy.yml
+## 🛠️ Step 7: Add GitHub Actions Workflow File
 
-name: Blood  Management
+In your project folder, create the file:
+
+`.github/workflows/deploy.yml`
+
+```yaml
+name: Blood Management
 
 on:
   push:
@@ -54,27 +93,24 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            # Navigate to project directory
             cd ${{ secrets.PROJECT_PATH }}
-
-            # Pull the latest code
             git pull origin main
+```
 
-            # # Install dependencies and build the project
-            # npm install
-            # npm run build
+---
 
-and in your project
+## 🔐 Step 8: Add GitHub Secrets
 
+Go to your GitHub repository → **Settings → Secrets and variables → Actions**  
+Click **"New repository secret"** for each of the following:
 
-🔐 3. Add Private Key to GitHub Secrets
-Go to GitHub Repo > Settings > Secrets and Variables > Actions and add:
+| Name              | Value                                                       |
+|-------------------|-------------------------------------------------------------|
+| `SSH_PRIVATE_KEY` | Content of `~/.ssh/ajmain` (the **private key**, not `.pub`) |
+| `VPS_HOST`        | Your VPS IP (e.g., `20.2.4.20`)                             |
+| `VPS_USER`        | Your SSH username (e.g., `root`)                            |
+| `PROJECT_PATH`    | Path to your project on VPS (e.g., `/www/wwwroot/test.mirpurianscafe.com`) |
 
-Name	Value
-SSH_PRIVATE_KEY	Content of github-actions (the private key)
-VPS_HOST	Your VPS IP (e.g., 20.2.4.20)
-VPS_USER	The username you use to SSH (e.g., root)
-PROJECT_PATH	Full path to your Laravel project on VPS (e.g., /www/wwwroot/yourdomain.com)
+---
 
-
-no
+After this setup, every push to the `main` branch will automatically deploy your code to your VPS via SSH. ✅
