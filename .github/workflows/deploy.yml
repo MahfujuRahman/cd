@@ -1,47 +1,35 @@
-name: 🚀 Deploy Laravel without Docker
+name: Deploy to VPS
 
+# Trigger the workflow on push to the main branch
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v3
+      # Checkout the repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: 🔐 Set up SSH
-      run: |
-        mkdir -p ~/.ssh  # Ensure .ssh exists
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/github-actions-key  # Save the private key
-        chmod 600 ~/.ssh/github-actions-key  # Set correct permissions
-        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts  # Add VPS to known hosts
+      # Set up SSH key for secure connection to VPS
+      - name: Install SSH Key
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
 
-    - name: 🚀 Deploy Laravel via SSH
-      run: |
-       ssh -vvv -i ~/.ssh/github-actions-key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
-          cd ${{ secrets.PROJECT_PATH }}
-          git pull origin main
-          # composer install --no-interaction --prefer-dist --optimize-autoloader
-          # php artisan migrate --force
-          # php artisan config:cache
-          # php artisan route:cache
-          # php artisan view:cache
-        EOFg
-        ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
-          cd ${{ secrets.PROJECT_PATH }}
-          if [ ! -d .git ]; then
-            git clone git@github.com:MahfujuRahman/cd.git .
-          else
-            git pull origin main
-          fi
-          # composer install --no-interaction --prefer-dist --optimize-autoloader
-          # php artisan migrate --force
-          # php artisan config:cache
-          # php artisan route:cache
-          # php artisan view:cache
-        EOF
-        echo "Deployment completed successfully!"
+      # Connect to VPS and deploy
+      - name: Deploy to VPS
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            cd ${{ secrets.WORK_DIR }} &&
+            git pull origin main &&
+            npm install --production &&
+            pm2 restart app || pm2 start npm --name 'app' -- start
+          "
+
+      # Clean up SSH keys
+      - name: Cleanup
+        run: rm -rf ~/.ssh
