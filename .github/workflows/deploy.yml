@@ -15,9 +15,10 @@ jobs:
 
     - name: 🔐 Set up SSH
       run: |
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/github-actions-key
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+        mkdir -p ~/.ssh  # Ensure .ssh exists
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/github-actions-key  # Save the private key
+        chmod 600 ~/.ssh/github-actions-key  # Set correct permissions
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts  # Add VPS to known hosts
 
     - name: 🚀 Deploy Laravel via SSH
       run: |
@@ -34,3 +35,4 @@ jobs:
           # php artisan route:cache
           # php artisan view:cache
         EOF
+        echo "Deployment completed successfully!"
