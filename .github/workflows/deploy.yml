@@ -15,7 +15,6 @@ jobs:
 
     - name: 🔐 Set up SSH
       run: |
-        mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/github-actions-key
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
