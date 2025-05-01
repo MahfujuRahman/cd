@@ -22,6 +22,15 @@ jobs:
 
     - name: 🚀 Deploy Laravel via SSH
       run: |
+       ssh -vvv -i ~/.ssh/github-actions-key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          cd ${{ secrets.PROJECT_PATH }}
+          git pull origin main
+          # composer install --no-interaction --prefer-dist --optimize-autoloader
+          # php artisan migrate --force
+          # php artisan config:cache
+          # php artisan route:cache
+          # php artisan view:cache
+        EOFg
         ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
           cd ${{ secrets.PROJECT_PATH }}
           if [ ! -d .git ]; then
