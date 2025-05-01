@@ -1,35 +1,28 @@
-name: Deploy to VPS
+name: Blood  Management
 
-# Trigger the workflow on push to the main branch
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      # Checkout the repository code
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Deploy using ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: 22
+          script: |
+            # Navigate to project directory
+            cd /www/wwwroot/testcicd.techparkit.org
 
-      # Set up SSH key for secure connection to VPS
-      - name: Install SSH Key
-        run: |
-          install -m 600 -D /dev/null ~/.ssh/id_rsa
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+            # Pull the latest code
+            git pull origin main
 
-      # Connect to VPS and deploy
-      - name: Deploy to VPS
-        run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-            cd ${{ secrets.WORK_DIR }} &&
-            git pull origin main &&
-            npm install --production &&
-            pm2 restart app || pm2 start npm --name 'app' -- start
-          "
-
-      # Clean up SSH keys
-      - name: Cleanup
-        run: rm -rf ~/.ssh
+            # # Install dependencies and build the project
+            # npm install
+            # npm run build
